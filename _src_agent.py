@@ -7,9 +7,9 @@ from _src_bot import bot
 def start(msg):
     replyKeys = types.ReplyKeyboardMarkup(row_width=1)
     replyKeys.add(
-        types.KeyboardButton(_s['filter_objects_but']),
-        types.KeyboardButton(_s['add_buyer_but']),
-        types.KeyboardButton(_s['find_buyer_but'])
+        types.KeyboardButton(_s['agentmenu_filter']),
+        types.KeyboardButton(_s['agentmenu_add']),
+        types.KeyboardButton(_s['agentmenu_find'])
     )
     bot.send_message(
         msg.chat.id,
@@ -24,7 +24,7 @@ def start(msg):
 
 
 def agent_start(msg):
-    if msg.text == _s['filter_objects_but']:
+    if msg.text == _s['agentmenu_filter']:
         keys = types.InlineKeyboardMarkup()
         buts = [
             types.InlineKeyboardButton(
@@ -52,6 +52,7 @@ def agent_start(msg):
             reply_markup=keys,
             parse_mode=PARSE_MODE
         )
+        
     else:
         bot.send_message(
             msg.chat.id,

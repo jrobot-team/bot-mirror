@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 from _data_classes import (
-    db,
+    users_db,
+    feed_db,
     Agent,
     ObjectApart,
     ObjectCommercial,
@@ -7,8 +9,17 @@ from _data_classes import (
     ObjectArea
 )
 
-db.connect()
-db.create_tables([
+'''users_db.connect()
+users_db.create_tables([
     Agent
 ])
-db.close()
+users_db.close()'''
+
+feed_db.connect()
+feed_db.create_tables([
+    ObjectApart,
+    ObjectCommercial,
+    ObjectHouse,
+    ObjectArea
+])
+feed_db.close()

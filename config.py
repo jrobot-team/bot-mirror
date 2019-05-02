@@ -13,7 +13,7 @@ WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/%s/" % (token)
 
 
-admin = (710761706, )
+admin = (, )
 
 TIMEZONE = 'Europe/Moscow'
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from telebot import types
 from _strings import _s
 from config import PARSE_MODE
