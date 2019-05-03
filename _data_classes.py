@@ -61,8 +61,8 @@ class Realty(Model):
 
     description = TextField(default='')
 
-    district_hash = CharField()
-    category_hash = CharField()
+    district_hash = CharField(default='')
+    category_hash = CharField(default='')
 
     class Meta:
         database = feed_db

@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 _c = {
+    'commands': (
+        'start',
+        'reset'
+        'upd',
+        'filter',
+        'add',
+        'find'
+    ),
     'apart_categories': (
         'квартира',
     ),
@@ -18,14 +26,14 @@ _c = {
     'area_categories': (
         'участок',
     ),
-    'price_ranges': [
+    'prices_ranges': [
         (0, 1000000),
         (1000000, 2500000),
         (2500000, 5000000),
         (5000000, 7500000),
         (7500000, 10000000)
     ],
-    'area_ranges': [
+    'areas_ranges': [
         (0, 30),
         (30, 60),
         (60, 90),

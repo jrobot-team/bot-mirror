@@ -5,7 +5,7 @@ from datetime import datetime
 from _data_classes import Realty, Agent
 from _src_consts import _c
 
-FEED_URL = 'https://base.kvartus.ru/reklama/xml/base/858/yrl.xml?fbclid=IwAR1q7AYKrtxLRJGxj8lDoBffanse6cEi2aB4LReinBNoyrAHEi3aRX6vWNA'
+FEED_URL = 'https://base.kvartus.ru/reklama/xml/base/7866/yrlmlsn.xml'
 
 
 class Service(object):
@@ -22,7 +22,9 @@ class Service(object):
         ns = {
             'ya': 'http://webmaster.yandex.ru/schemas/feed/realty/2010-06'
         }
-        Realty.delete().execute()
+        print('======== updating from feed')
+        print('Deleted:   ', Realty.delete().execute())
+        count = 0
         for offer in root.findall('ya:offer', ns):
             try:
                 if offer.find('ya:type', ns).text != 'продажа':
@@ -41,8 +43,8 @@ class Service(object):
                 realty.category_hash = hash(cat)
                 realty.images = ' '.join([i.text for i in offer.findall('ya:image', ns)])
                 price = offer.find('ya:price', ns)
-                realty.price_value = price.find('ya:value', ns)
-                realty.price_currency = price.find('ya:currency', ns)
+                realty.price_value = price.find('ya:value', ns).text
+                realty.price_currency = price.find('ya:currency', ns).text
                 realty.description = offer.find('ya:description', ns).text
 
                 if cat in _c['apart_categories']:
@@ -91,37 +93,52 @@ class Service(object):
                     x_lotarea = offer.find('ya:lot-area', ns)
                     realty.lot_area_value = x_lotarea.find('ya:value', ns).text
                     realty.lot_area_unit = x_lotarea.find('ya:unit', ns).text
-
-                realty.save()
+                count += 1
+                realty.save(force_insert=True)
             except Exception as e:
-                pass
+                print('Parsing error:  ', str(e))
+        print('Parsed:   ', count)
+        count = 0
+        for i in Realty.select():
+            count += 1
+        print('In Database:   ', count)
 
-    def get_apart_districts(self):
-        query = Realty.select(
-            Realty.district, Realty.district_hash
-        ).distinct().where(
-            Realty.category in _c['apart_categories']
+    def get_districts(self, category):
+        query = Realty.select(Realty.district, Realty.district_hash).distinct().where(
+            Realty.category in category
         )
-        return [(i.district, i.district_hash) for i in query]
+        return query
 
-    def get_apart_rooms(self, disthash):
+    def get_categories(self, category):
+        query = Realty.select(Realty.category, Realty.category_hash).distinct().where(
+            Realty.category in category
+        )
+        return query
+
+    def get_rooms(self, category, hashes):
         query = Realty.select(Realty.rooms).distinct().where(
-            Realty.category in _c['apart_categories'] and Realty.district_hash == disthash
+            Realty.category in category
+            and Realty.district_hash in hashes
         )
-        return [i.rooms for i in query]
-    
-    def filter_apart(disthash, rooms, prn, arn):
-        minprice = _c['price_ranges'][0]
-        maxprice = _c['price_ranges'][1]
-        minarea = _c['areas_ranges'][0]
-        maxarea = _c['areas_ranges'][1]
+        return query
+
+    def filter_apart(self, disthashes, rooms, prices, areas):
+        _prices = []
+        _areas = []
+        for i in prices:
+            _prices += [i.price_value for i in Realty.select(Realty.price_value).distinct().where(i[0] <= Realty.price_value <= i[1])] 
+        for i in areas:
+            _areas += [i.area_value for i in Realty.select(Realty.area_value).distinct().where(i[0] <= Realty.area_value <= i[1])]
         query = Realty.select().where(
-            Realty.district_hash == disthash
-            and Realty.rooms == rooms
-            and minprice <= Realty.price_value <= maxprice
-            and minarea <= Realty.area_value <= maxarea
+            Realty.district_hash in disthashes
+            and Realty.rooms in rooms
+            and Realty.price_value in prices
+            and Realty.area_value in areas
         )
         return query
 
 
 data = Service()
+
+if __name__ == '__main__':
+    data.updateFromFeed()

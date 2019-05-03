@@ -3,22 +3,9 @@ import cherrypy
 import telebot
 
 import config
+from _src_consts import _c
 from _src_bot import bot
-from _src_handler import Handler
-
-handler = Handler()
-
-@bot.message_handler(commands=['start', 'Start'])
-def receive_command(message):
-    handler.handle_command_message(message)
-
-@bot.message_handler(func=lambda msg: True, content_types=['text'])
-def receive_message(message):
-    handler.handle_message(message)
-
-@bot.callback_query_handler(func=lambda cb: True)
-def receive_callback(cb):
-    handler.handle_callback(cb)
+import _src_handler
 
 # SERVER
 
@@ -34,6 +21,7 @@ class WebhookServer(object):
             return ''
         else:
             raise cherrypy.HTTPError(403)
+
 
 cherrypy.config.update({
     'server.socket_host': config.WEBHOOK_LISTEN,
