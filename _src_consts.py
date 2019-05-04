@@ -38,5 +38,14 @@ _c = {
         (30, 60),
         (60, 90),
         (90, 150)
-    ]
+    ],
+    'html_template': "\
+<html>\
+<head>\
+</head>\
+<body>\
+{}\
+</body>\
+</html>",
+    'html_img_template': "<img src='{}' />"
 }

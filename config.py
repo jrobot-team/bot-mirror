@@ -18,3 +18,5 @@ admin = (91, )
 TIMEZONE = 'Europe/Moscow'
 
 PARSE_MODE = 'html'
+
+PAGE_LEN = 7

@@ -35,6 +35,14 @@ class Handler(object):
 
     def on_message(self, message):
         print('--- handler message')
+        for i in self.bots:
+            if i.id == message.from_user.id:
+                i.message(message)
+                break
+        else:
+            new_bot = AgentBot()
+            new_bot.start(message.from_user.id)
+            self.bots.append(new_bot)
 
     def on_callback(self, cb):
         print('--- callback', cb.data)

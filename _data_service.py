@@ -25,8 +25,10 @@ class Service(object):
         print('======== updating from feed')
         print('Deleted:   ', Realty.delete().execute())
         count = 0
+        total_count = 0
         for offer in root.findall('ya:offer', ns):
             try:
+                total_count += 1
                 if offer.find('ya:type', ns).text != 'продажа':
                     continue
 
@@ -93,10 +95,11 @@ class Service(object):
                     x_lotarea = offer.find('ya:lot-area', ns)
                     realty.lot_area_value = x_lotarea.find('ya:value', ns).text
                     realty.lot_area_unit = x_lotarea.find('ya:unit', ns).text
-                count += 1
                 realty.save(force_insert=True)
+                count += 1
             except Exception as e:
                 print('Parsing error:  ', str(e))
+        print('Total founded:   ', total_count)
         print('Parsed:   ', count)
         count = 0
         for i in Realty.select():
@@ -110,32 +113,73 @@ class Service(object):
         return query
 
     def get_categories(self, category):
-        query = Realty.select(Realty.category, Realty.category_hash).distinct().where(
-            Realty.category in category
+        return Realty.select(
+            Realty.category, Realty.category_hash
+        ).distinct().where(
+            Realty.category.in_(category)
         )
+
+    def get_commercial_types(self):
+        query = Realty.select(Realty.commercial_type).distinct()
         return query
 
-    def get_rooms(self, category, hashes):
-        query = Realty.select(Realty.rooms).distinct().where(
-            Realty.category in category
-            and Realty.district_hash in hashes
-        )
-        return query
+    def get_rooms(self, category):
+        return Realty.select(Realty.rooms).distinct().where(
+            Realty.category.in_(category)
+        ).order_by(Realty.rooms)
 
-    def filter_apart(self, disthashes, rooms, prices, areas):
+    def get_all(self):
+        return Realty.select()
+
+    def get_all_lots(self):
+        return Realty.select().where(Realty.category_hash.in_([str(hash(i)) for i in _c['area_categories']]))
+
+    def apply_filter(
+        self,
+        prices=None,
+        areas=None,
+        area_field='area_value',
+        rooms=None,
+        categories=None,
+        commercial_types=None
+    ):
         _prices = []
         _areas = []
-        for i in prices:
-            _prices += [i.price_value for i in Realty.select(Realty.price_value).distinct().where(i[0] <= Realty.price_value <= i[1])] 
-        for i in areas:
-            _areas += [i.area_value for i in Realty.select(Realty.area_value).distinct().where(i[0] <= Realty.area_value <= i[1])]
-        query = Realty.select().where(
-            Realty.district_hash in disthashes
-            and Realty.rooms in rooms
-            and Realty.price_value in prices
-            and Realty.area_value in areas
+        query = Realty.select(
+            Realty.price_value, 
+            self.area_field(Realty, area_field)
         )
-        return query
+        for i in query:
+            if prices is None:
+                _prices += [i.price_value]
+            else:
+                for j in prices:
+                    if j[0] <= i.price_value <= j[1]:
+                        _prices += [i.price_value]
+            value = self.area_field(i, area_field)
+            if areas is None:
+                _areas += [value]
+            else:
+                for j in areas:
+                    if j[0] <= value <= j[1]:
+                        _areas += [value]
+        args = [
+            Realty.price_value.in_(_prices),
+            self.area_field(Realty, area_field).in_(_areas)
+        ]
+        if rooms is not None:
+            args += [Realty.rooms.in_(rooms)]
+        if categories is not None:
+            args += [Realty.category.in_(categories)]
+        if commercial_types is not None:
+            args += [Realty.commercial_type.in_(commercial_types)]
+        return Realty.select().where(*args)
+
+    def area_field(self, obj, field):
+        if field == 'area_value':
+            return obj.area_value
+        if field == 'lot_area_value':
+            return obj.lot_area_value
 
 
 data = Service()
